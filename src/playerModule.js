@@ -82,6 +82,10 @@ var PlayerController = (function () {
                 playerModel.findBySocket(socket).setUsername(newName);
                 namespace.emit('name-change', oldName, newName);
             });
+            socket.on('lobby-message', function (msg) {
+                console.log('Message sent: ' + msg);
+                namespace.emit('lobby-message', msg);
+            });
             socket.on('team-change', function (baseTeam) {
                 console.log(playerModel.findBySocket(socket).getUsername() + " is changing teams");
                 playerModel.findBySocket(socket).setBaseTeam(baseTeam);
@@ -99,8 +103,10 @@ var PlayerController = (function () {
             });
             socket.on('disconnect', function () {
                 if (playerModel.findBySocket(socket) != null) {
-                    console.log(playerModel.findBySocket(socket).getUsername() + " disconnected");
-                    playerModel.removePlayer(playerModel.findBySocket(socket));
+                    var player = playerModel.findBySocket(socket);
+                    console.log(player.getUsername() + " disconnected");
+                    playerModel.removePlayer(player);
+                    namespace.emit('user-gone', player.getUsername());
                 }
                 else {
                     console.log('A non logged user left');
