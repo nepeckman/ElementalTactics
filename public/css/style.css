@@ -1,3 +1,4 @@
 ul {
-    list-style-type: none;
+    overflow: scroll;
+    max-height: 300px;
 }
