@@ -88,6 +88,7 @@ var PlayerController = (function () {
             });
             socket.on('team-change', function (baseTeam) {
                 console.log(playerModel.findBySocket(socket).getUsername() + " is changing teams");
+                console.log(baseTeam);
                 playerModel.findBySocket(socket).setBaseTeam(baseTeam);
             });
             socket.on('challenge', function (challengedUser) {

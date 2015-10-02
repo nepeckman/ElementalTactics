@@ -1,24 +1,28 @@
-var app = angular.module('playerViewApp', []);
 app.controller('playerViewCtrl', function($scope) {
-    var socket = io();
-    
     $scope.username = {name: "", loggedIn: false};
     $scope.isChallenging = false;
     $scope.isChallenged = false;
     $scope.userlist = new Array();
     $scope.lobbyMsgs = new Array();
+    $scope.lobbyMsg = "";
+    $scope.lobbyActive = true;
+    $scope.types = ["Fire", "Water", "Air", "Earth", "Plant", "Electric", "Ice", "Metal", "Light", "Dark"];
     var units = new Array();
     for(var idx = 0; idx < 5; idx++){
-        units.push({name: "Unit " + (idx+1), primaryType: "", secondaryType: ""});
+        units.push({name: "Unit " + (idx+1), primaryType: $scope.types[idx], secondaryType: ""});
     }
     $scope.units = units;
-    $scope.types = ["Fire", "Water", "Air", "Earth", "Plant", "Electric", "Ice", "Metal", "Light", "Dark"];
     
+    $scope.hideLobby = function(){
+        $scope.lobbyActive = !$scope.lobbyActive;
+    }
     $scope.changeName = function(){
         if($scope.username.loggedIn === false){
             console.log("Logging in");
             socket.emit('login', $scope.newName);
             $scope.username.loggedIn = true;
+            console.log('Sending a team change');
+            socket.emit('team-change', $scope.units);
         } else {
             console.log('Changing name to' + $scope.newName);
             socket.emit('name-change', $scope.newName);
@@ -66,6 +70,13 @@ app.controller('playerViewCtrl', function($scope) {
         if($scope.username.loggedIn){
             console.log('Sending a team change');
             socket.emit('team-change', $scope.units);
+        }
+    }
+    $scope.defaultType = function(type, unit){
+        if($scope.types.indexOf(type) === $scope.units.indexOf(unit)){
+            return true;
+        } else {
+            return false;
         }
     }
     

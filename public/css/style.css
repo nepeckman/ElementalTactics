@@ -1,4 +1,15 @@
+html, body {
+    height: 100%;
+}
+
 ul {
     overflow: scroll;
     max-height: 300px;
+}
+#lobby {
+    min-height: 100%;
+}
+
+#lobbyMessageBox {
+    height: 350px;
 }

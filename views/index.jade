@@ -7,30 +7,43 @@ html
         style
             include ../public/css/style.css
     body
-        .container
-            #info.container.well.well-lg
+        .container(ng-app="playerViewApp")
+            #info.container.well.well-sm
                 h3 Elemental Tactics
-            .playerView
-                #lobby(ng-app="playerViewApp" ng-controller="playerViewCtrl")
-                    .container.well
+            #playerView(ng-controller="playerViewCtrl")
+                    button.btn.btn-xs(ng-click="hideLobby()") Hide Lobby
+                    #lobby.container.well(ng-hide="!lobbyActive")
                         .row
                             #userlist.col-md-2
                                 span Users:
                                 ul.list-group
                                     li.list-group-item(ng-repeat="user in userlist" ng-click="promptChallenge(user.name)") {{user.name}}
+                            #lobbyMessages.col-md-6
+                                #lobbyMessageBox.well
+                                    span Lobby Chat:
+                                    ul.list-group
+                                        li.list-group-item(ng-repeat="msg in lobbyMsgs track by $index") {{msg}}
+                            #team-battle.col-md-4
+                                form#teambuilder(ng-submit="changeTeam()")
+                                    .unit(ng-repeat="unit in units")
+                                        span {{unit.name}}
+                                        select(ng-model="unit.primaryType")
+                                            option(ng-repeat="type in types" ng-selected="defaultType(type, unit)") {{type}}
+                                        select(ng-model="unit.secondaryType")
+                                            option(ng-repeat="type in types") {{type}}
+                                    button(type="submit") Update Team
+                        .row
+                            .col-md-2
                                 span(ng-hide="username.loggedIn") Please Choose a Username
                                 span(ng-hide="!username.loggedIn") Welcome {{username.name}}
                                 form#nameChange(ng-submit="changeName()")
                                     input(type="text" ng-model="newName")
                                     button(type="submit") Change Name
-                            #lobbyMessages.col-md-6
-                                span Lobby Chat:
-                                ul.list-group
-                                    li.list-group-item(ng-repeat="msg in lobbyMsgs track by $index") {{msg}}
-                                form#lobbyMessageBox(ng-submit="lobbyMessage()")
+                            .col-md-6
+                                form#lobbyMessager(ng-submit="lobbyMessage()")
                                     input(ng-model="lobbyMsg")
                                     button(type="submit") Send
-                            #team-battle.col-md-4
+                            .col-md-4
                                 form#challenge(ng-submit="submitChallenge()" ng-hide="!isChallenging")
                                     span  Challenge {{challengedUser}}?
                                     button(type="submit") Challenge
@@ -39,13 +52,7 @@ html
                                     span {{challengingUser}} wants to battle!
                                     button(type="submit") Accept
                                     button(type="reset" ng-click="rejectChallenge()") Reject
-                                form#teambuilder(ng-submit="changeTeam()")
-                                    .unit(ng-repeat="unit in units")
-                                        span {{unit.name}}
-                                        select(ng-model="unit.primaryType")
-                                            option(ng-repeat="type in types") {{type}}
-                                        select(ng-model="unit.secondaryType")
-                                            option(ng-repeat="type in types") {{type}}
-                                    button(type="submit") Update Team
+            #battleView
             script
+                include ../public/javascript/angularApp.js
                 include ../public/javascript/playerView.js
