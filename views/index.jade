@@ -8,10 +8,7 @@ html
             include ../public/css/style.css
     body
         .container(ng-app="playerViewApp")
-            #info.container.well.well-sm
-                h3 Elemental Tactics
             #playerView(ng-controller="playerViewCtrl")
-                    button.btn.btn-xs(ng-click="hideLobby()") Hide Lobby
                     #lobby.container.well(ng-hide="!lobbyActive")
                         .row
                             #userlist.col-md-2
@@ -52,7 +49,42 @@ html
                                     span {{challengingUser}} wants to battle!
                                     button(type="submit") Accept
                                     button(type="reset" ng-click="rejectChallenge()") Reject
-            #battleView
+            #battleView(ng-controller="battleViewCtrl")
+                #battle.container.well
+                    .row
+                        #teams.col-md-4
+                            span Your Team
+                            ul.list-group
+                                li.list-group-item(ng-repeat="unit in yourTeam") {{unit.name}}: {{unit.primaryType}}/{{unit.secondaryType}}
+                            br
+                            span Opponent's Team
+                            ul.list-group
+                                li.list-group-item(ng-repeat="unit in oppTeam") {{unit.name}}: {{unit.primaryType}}/{{unit.secondaryType}}
+                        #active.col-md-4
+                            span Your Active Unit:
+                            br
+                            span {{yourActive.name}}: {{yourActive.primaryType}}/{{yourActive.secondaryType}}
+                            br
+                            br
+                            span Opponent's Active Unit:
+                            br
+                            span {{oppActive.name}}: {{oppActive.primaryType}}/{{oppActive.secondaryType}}
+                        #battleInput.col-md-4
+                            form(ng-submit="processMove()" ng-hide="!recievingAction")
+                                label
+                                    input(type="radio" ng-model="playerMove" value="switch")
+                                    span Switch
+                                br
+                                label
+                                    input(type="radio" ng-model="playerMove" value="attack")
+                                    span Attack
+                                br
+                                button.btn(type="submit") Submit Move
+                            form(ng-submit="submitSwitch()" ng-hide="!recievingSwitch")
+                                select(ng-model="switchTarget")
+                                    option(ng-repeat="unit in yourTeam") {{unit.name}}}
+                                button(type="submit") Switch units    
             script
                 include ../public/javascript/angularApp.js
                 include ../public/javascript/playerView.js
+                include ../public/javascript/battleView.js
