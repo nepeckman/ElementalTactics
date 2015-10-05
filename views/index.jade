@@ -63,12 +63,12 @@ html
                         #active.col-md-4
                             span Your Active Unit:
                             br
-                            span {{yourActive.name}}: {{yourActive.primaryType}}/{{yourActive.secondaryType}}
+                            span {{yourActive.name}} ({{yourActive.health}}/10 health): {{yourActive.primaryType}}/{{yourActive.secondaryType}}
                             br
                             br
                             span Opponent's Active Unit:
                             br
-                            span {{oppActive.name}}: {{oppActive.primaryType}}/{{oppActive.secondaryType}}
+                            span {{oppActive.name}} ({{oppActive.health}}/10 health): {{oppActive.primaryType}}/{{oppActive.secondaryType}}
                         #battleInput.col-md-4
                             form(ng-submit="processMove()" ng-hide="!recievingAction")
                                 label
@@ -82,7 +82,7 @@ html
                                 button.btn(type="submit") Submit Move
                             form(ng-submit="submitSwitch()" ng-hide="!recievingSwitch")
                                 select(ng-model="switchTarget")
-                                    option(ng-repeat="unit in yourTeam") {{unit.name}}}
+                                    option(ng-repeat="unit in yourTeam") {{unit.name}}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
                                 button(type="submit") Switch units    
             script
                 include ../public/javascript/angularApp.js

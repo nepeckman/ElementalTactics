@@ -1,10 +1,11 @@
 ///<reference path='../typings/socket.io.d.ts' />
+import battle_mod = require('./battleModule');
 
-class Player {
+export class Player {
     
     private _username: string;
     private _socket: SocketIO.Socket;
-    private _baseTeam: Object[];
+    private _baseTeam: battle_mod.BaseTeam;
     
     constructor(username: string, socket: SocketIO.Socket){
         this._username = username;
