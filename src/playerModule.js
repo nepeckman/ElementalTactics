@@ -1,4 +1,5 @@
 ///<reference path='../typings/socket.io.d.ts' />
+var battle_mod = require('./battleModule');
 var Player = (function () {
     function Player(username, socket) {
         this._username = username;
@@ -24,6 +25,7 @@ var Player = (function () {
     };
     return Player;
 })();
+exports.Player = Player;
 var PlayerModel = (function () {
     function PlayerModel() {
         this._players = new Array();
@@ -67,8 +69,10 @@ var PlayerModel = (function () {
 var PlayerController = (function () {
     function PlayerController(namespace) {
         var playerModel = new PlayerModel();
+        var battleController = new battle_mod.BattleController();
         this._namespace = namespace;
         this._playerModel = playerModel;
+        this._battleController = battleController;
         this._namespace.on('connection', function (socket) {
             socket.emit('userlist', playerModel.getUserlist());
             socket.on('login', function (name) {
@@ -101,6 +105,16 @@ var PlayerController = (function () {
             });
             socket.on('new-battle', function (player1, player2) {
                 console.log("Battle started between " + player1 + " and " + player2);
+                battleController.newBattle(playerModel.findByUsername(player1), playerModel.findByUsername(player2));
+            });
+            socket.on('battle-input', function (id, mover, move, target) {
+                console.log(id);
+                console.log(move);
+                console.log(target);
+                battleController.recieveInput(id, socket, mover, move, target);
+            });
+            socket.on('battle-switch', function (id, unit_slot) {
+                battleController.recieveSwitch(id, socket, unit_slot);
             });
             socket.on('disconnect', function () {
                 if (playerModel.findBySocket(socket) != null) {

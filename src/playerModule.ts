@@ -5,7 +5,7 @@ export class Player {
     
     private _username: string;
     private _socket: SocketIO.Socket;
-    private _baseTeam: battle_mod.BaseTeam;
+    private _baseTeam: battle_mod.BaseUnit[];
     
     constructor(username: string, socket: SocketIO.Socket){
         this._username = username;
@@ -28,11 +28,11 @@ export class Player {
         this._socket = socket;
     }
     
-    getBaseTeam(): Object[] {
+    getBaseTeam(): battle_mod.BaseUnit[] {
         return this._baseTeam;
     }
     
-    setBaseTeam(baseTeam: Object[]): void {
+    setBaseTeam(baseTeam: battle_mod.BaseUnit[]): void {
         this._baseTeam = baseTeam;
     }
 }
@@ -89,11 +89,14 @@ export class PlayerController{
 
     private _namespace: SocketIO.Namespace;
     private _playerModel: PlayerModel;
+    private _battleController: battle_mod.BattleController;
     
     constructor(namespace: SocketIO.Namespace){
         var playerModel = new PlayerModel();
+        var battleController = new battle_mod.BattleController();
         this._namespace = namespace;
         this._playerModel = playerModel;
+        this._battleController = battleController;
         this._namespace.on('connection', function(socket: SocketIO.Socket){
             socket.emit('userlist', playerModel.getUserlist());
             socket.on('login', function(name: string){
@@ -111,7 +114,7 @@ export class PlayerController{
                 console.log('Message sent: ' + msg);
                 namespace.emit('lobby-message', msg);
             });
-            socket.on('team-change', function(baseTeam: Object[]){
+            socket.on('team-change', function(baseTeam: battle_mod.BaseUnit[]){
                 console.log(playerModel.findBySocket(socket).getUsername() + " is changing teams");
                 console.log(baseTeam);
                 playerModel.findBySocket(socket).setBaseTeam(baseTeam);
@@ -126,6 +129,16 @@ export class PlayerController{
             });
             socket.on('new-battle', function(player1: string, player2: string){
                 console.log("Battle started between " + player1 + " and " + player2);
+                battleController.newBattle(playerModel.findByUsername(player1), playerModel.findByUsername(player2));
+            });
+            socket.on('battle-input', function(id: number, mover: number, move: string, target: battle_mod.BaseTarget){
+                console.log(id);
+                console.log(move);
+                console.log(target);
+                battleController.recieveInput(id, socket, mover, move, target);
+            });
+            socket.on('battle-switch', function(id: number, unit_slot: number){
+                battleController.recieveSwitch(id, socket, unit_slot);
             });
             socket.on('disconnect', function(){
                 if(playerModel.findBySocket(socket) != null){

@@ -6,10 +6,10 @@ app.controller('playerViewCtrl', function($scope) {
     $scope.lobbyMsgs = new Array();
     $scope.lobbyMsg = "";
     $scope.lobbyActive = true;
-    $scope.types = ["Fire", "Water", "Air", "Earth", "Plant", "Electric", "Ice", "Metal", "Light", "Dark"];
+    $scope.types = ["Fire", "Water", "Air", "Earth", "Flora", "Electric", "Ice", "Metal", "Light", "Dark"];
     var units = new Array();
     for(var idx = 0; idx < 5; idx++){
-        units.push({name: "Unit " + (idx+1), primaryType: $scope.types[idx], secondaryType: ""});
+        units.push({name: "Unit " + (idx+1), primaryType: $scope.types[idx], secondaryType: "Neutral"});
     }
     $scope.units = units;
     
