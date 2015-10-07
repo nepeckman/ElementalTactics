@@ -52,25 +52,27 @@ html
                                     button(type="reset" ng-click="rejectChallenge()") Reject
             #battleView(ng-controller="battleViewCtrl")
                 #battle.container.well
+                    span You will {{tiebreaker}}
                     .row
                         #teams.col-md-4
+                            span Opponent's Team
+                            ul.list-group
+                                li.list-group-item(ng-repeat="unit in oppTeam") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
                             span Your Team
                             ul.list-group
                                 li.list-group-item(ng-repeat="unit in yourTeam") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
                             br
-                            span Opponent's Team
-                            ul.list-group
-                                li.list-group-item(ng-repeat="unit in oppTeam") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
-                        #active.col-md-4
+                        #active.col-md-3
+                            span Opponent's Active Unit:
+                            br
+                            span {{oppActive.name}} ({{oppActive.health}}/10 health): {{oppActive.primaryType}}/{{oppActive.secondaryType}}
+                            br
+                            br
                             span Your Active Unit:
                             br
                             span {{yourActive.name}} ({{yourActive.health}}/10 health): {{yourActive.primaryType}}/{{yourActive.secondaryType}}
                             br
-                            br
-                            span Opponent's Active Unit:
-                            br
-                            span {{oppActive.name}} ({{oppActive.health}}/10 health): {{oppActive.primaryType}}/{{oppActive.secondaryType}}
-                        #battleInput.col-md-4
+                        #battleInput.col-md-2
                             form(ng-submit="processMove()" ng-hide="!recievingAction")
                                 label Attack
                                     input(type="radio" ng-model="playerMove" value="attack")
@@ -88,7 +90,12 @@ html
                                 label(ng-repeat="unit in livingUnits" for="{{unit.name}}") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
                                     input(type="radio" ng-model="switchTarget.unit_slot" ng-value="$index + 1" id="{{unit.name}}" name="switchTarget")
                                 br
-                                button.btn(type="submit") Switch units  
+                                button.btn(type="submit") Switch units
+                        #battleLog.col-md-3
+                            span Battle Log:
+                            #battleLogBox.well
+                                span(ng-repeat="entry in battleLog track by $index") {{entry}}
+                                    br
             script
                 include ../public/javascript/angularApp.js
                 include ../public/javascript/playerView.js

@@ -118,6 +118,7 @@ var PlayerController = (function () {
             });
             socket.on('disconnect', function () {
                 if (playerModel.findBySocket(socket) != null) {
+                    battleController.playerDisconnect(socket);
                     var player = playerModel.findBySocket(socket);
                     console.log(player.getUsername() + " disconnected");
                     playerModel.removePlayer(player);

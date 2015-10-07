@@ -13,3 +13,8 @@ ul {
 #lobbyMessageBox {
     height: 250px;
 }
+
+#battleLogBox {
+    overflow: scroll;
+    height: 250px;
+}

@@ -1,7 +1,10 @@
 app.controller('battleViewCtrl', function($scope) {
     var battleID;
+    var yourName;
+    var oppName;
     var mover = 0; // Active unit is always acting
     $scope.switchTarget = {unit_slot: null, team: "you"};
+    $scope.battleLog = new Array();
     
     var submitMove = function(move, target){
         socket.emit('battle-input', battleID, mover, move, target);
@@ -9,11 +12,12 @@ app.controller('battleViewCtrl', function($scope) {
         $scope.promptSwitch = false;
     }
     
-    var updateView = function(yourTeam, oppTeam){
+    var updateView = function(yourTeam, oppTeam, tiebreaker){
         $scope.yourTeam = yourTeam;
         $scope.yourActive = yourTeam[0];
         $scope.oppTeam = oppTeam;
         $scope.oppActive = oppTeam[0];
+        $scope.tiebreaker = (tiebreaker) ? "win ties" : "lose ties";
         $scope.$apply();
     }
     
@@ -36,9 +40,13 @@ app.controller('battleViewCtrl', function($scope) {
         $scope.recievingReplacement = false;
     }
     
-    socket.on('new-battle', function(id, yourTeam, oppTeam){
+    socket.on('new-battle', function(id, yourTeam, oppTeam, tiebreaker, _yourName, _oppName){
         battleID = id;
-        updateView(yourTeam, oppTeam);
+        yourName = _yourName;
+        oppName = _oppName;
+        $scope.battleLog = new Array();
+        $scope.battleLog.push(": Battle started between " + yourName + " and " + oppName + "!");
+        updateView(yourTeam, oppTeam, tiebreaker);
     });
     
     socket.on('prompt-move', function(){
@@ -53,7 +61,25 @@ app.controller('battleViewCtrl', function($scope) {
         $scope.$apply();
     });
     
-    socket.on('battle-info', function(yourTeam, oppTeam){
-        updateView(yourTeam, oppTeam);
+    socket.on('battle-info', function(yourTeam, oppTeam, tiebreaker, battleLog){
+        if(battleLog.length > 0){
+            battleLog.forEach(function(entry){
+                $scope.battleLog.push(": " + entry);
+            });
+        }
+        updateView(yourTeam, oppTeam, tiebreaker);
+    });
+    
+    socket.on('battle-over', function(winner){
+        if(winner){
+            $scope.battleLog.push("You win!");
+        } else {
+            $scope.battleLog.push("Your opponent wins!");
+        }
+        $scope.yourTeam =null;
+        $scope.yourActive = null;
+        $scope.oppTeam = null;
+        $scope.oppActive = null;
+        $scope.tiebreaker = null;
     });
 });

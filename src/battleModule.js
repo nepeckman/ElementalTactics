@@ -4,15 +4,15 @@ var BattleController = (function () {
     }
     BattleController.prototype.newBattle = function (player1, player2) {
         var tiebreaker = Math.random() < .5;
-        var team1 = new Team(player1.getSocket(), player1.getBaseTeam(), tiebreaker);
-        var team2 = new Team(player2.getSocket(), player2.getBaseTeam(), !tiebreaker);
+        var team1 = new Team(player1.getSocket(), player1.getUsername(), player1.getBaseTeam(), tiebreaker);
+        var team2 = new Team(player2.getSocket(), player2.getUsername(), player2.getBaseTeam(), !tiebreaker);
         // TODO: add id to constuctor
-        var battle = new Battle(team1, team2);
+        var battle = new Battle(this._battleModel, team1, team2);
         this._battleModel.addBattle(battle);
         [team1, team2].forEach(function (team, index, array) {
             team.setBattle(battle);
             var oppIdx = (index === 0) ? 1 : 0;
-            team.getSocket().emit('new-battle', battle.id, team.getLivingUnits(), array[oppIdx].getLivingUnits());
+            team.getSocket().emit('new-battle', battle.id, team.getLivingUnits(), array[oppIdx].getLivingUnits(), team.tiebreaker, team.playerName, array[oppIdx].playerName);
             team.getSocket().emit('prompt-move');
         });
     };
@@ -24,6 +24,14 @@ var BattleController = (function () {
     BattleController.prototype.recieveSwitch = function (battleID, socket, unit_slot) {
         var battle = this._battleModel.findBattle(battleID);
         battle.getTeam(socket).replaceUnit(unit_slot);
+    };
+    BattleController.prototype.playerDisconnect = function (socket) {
+        var battles = this._battleModel.findPlayerBattles(socket);
+        if (battles.length > 0) {
+            battles.forEach(function (battle) {
+                battle.playerDisconnect(socket);
+            });
+        }
     };
     return BattleController;
 })();
@@ -50,10 +58,20 @@ var BattleModel = (function () {
         });
         return match;
     };
+    BattleModel.prototype.findPlayerBattles = function (socket) {
+        var matches = new Array();
+        this._battles.forEach(function (battle) {
+            if (battle.team1.getSocket().id === socket.id || battle.team2.getSocket().id === socket.id) {
+                matches.push(battle);
+            }
+        });
+        return matches;
+    };
     return BattleModel;
 })();
 var Battle = (function () {
-    function Battle(team1, team2) {
+    function Battle(battleModel, team1, team2) {
+        this._battleModel = battleModel;
         this.team1 = team1;
         this.team2 = team2;
         this.id = 0;
@@ -69,8 +87,9 @@ var Battle = (function () {
             this.processTurn();
         }
     };
-    Battle.prototype.switchSubmitted = function () {
+    Battle.prototype.switchSubmitted = function (unitName, playerName) {
         if (this.team1.getActiveUnit().health > 0 && this.team2.getActiveUnit().health > 0) {
+            this.battleLog.push(playerName + " sent out " + unitName);
             this.startTurn();
         }
     };
@@ -87,28 +106,37 @@ var Battle = (function () {
                 return a.move.tiebreaker ? -1 : 1;
             }
         });
+        var battleLog = new Array();
         acting_units.forEach(function (unit) {
             console.log(unit.move);
             if (unit.move.name === "attack" && unit.health > 0) {
-                unit.move.target.team.getActiveUnit().health -= unit.move.damage * typeDamage(unit.primaryType, unit.move.target.team.getActiveUnit().primaryType, unit.move.target.team.getActiveUnit().secondaryType);
+                var defendingUnit = unit.move.target.team.getActiveUnit();
+                var damage = unit.move.damage * typeDamage(unit.primaryType, defendingUnit.primaryType, defendingUnit.secondaryType);
+                defendingUnit.health -= damage;
+                battleLog.push(unit.name + " attacked " + defendingUnit.name + " for " + damage.toString() + " damage!");
             }
             else if (unit.move.name === "switch" && unit.health > 0) {
-                unit.move.target.team.switchUnits(unit, unit.move.target.team.getLivingUnits()[unit.move.target.unit_slot]);
+                var newActiveUnit = unit.move.target.team.getLivingUnits()[unit.move.target.unit_slot];
+                unit.move.target.team.switchUnits(unit, newActiveUnit);
+                battleLog.push(unit.name + " switched to " + newActiveUnit.name);
             }
         });
+        this.battleLog = battleLog;
         this.endTurn();
     };
     Battle.prototype.startTurn = function () {
-        this.team1.getSocket().emit('battle-info', this.team1.getLivingUnits(), this.team2.getLivingUnits());
-        this.team2.getSocket().emit('battle-info', this.team2.getLivingUnits(), this.team1.getLivingUnits());
+        this.team1.getSocket().emit('battle-info', this.team1.getLivingUnits(), this.team2.getLivingUnits(), this.team1.tiebreaker, this.battleLog);
+        this.team2.getSocket().emit('battle-info', this.team2.getLivingUnits(), this.team1.getLivingUnits(), this.team2.tiebreaker, this.battleLog);
+        this.battleLog = new Array();
         this.team1.promptMove();
         this.team2.promptMove();
     };
     Battle.prototype.endTurn = function () {
         this.team1.endTurn();
         this.team2.endTurn();
-        this.team1.getSocket().emit('battle-info', this.team1.getLivingUnits(), this.team2.getLivingUnits());
-        this.team2.getSocket().emit('battle-info', this.team2.getLivingUnits(), this.team1.getLivingUnits());
+        this.team1.getSocket().emit('battle-info', this.team1.getLivingUnits(), this.team2.getLivingUnits(), this.team1.tiebreaker, this.battleLog);
+        this.team2.getSocket().emit('battle-info', this.team2.getLivingUnits(), this.team1.getLivingUnits(), this.team2.tiebreaker, this.battleLog);
+        this.battleLog = new Array();
         if (!this.team1.isAlive() || !this.team2.isAlive()) {
             this.endGame();
         }
@@ -137,12 +165,19 @@ var Battle = (function () {
         }
     };
     Battle.prototype.endGame = function () {
+        this.team1.getSocket().emit('battle-over', this.team1.isAlive());
+        this.team2.getSocket().emit('battle-over', this.team2.isAlive());
+        this._battleModel.removeBattle(this);
+    };
+    Battle.prototype.playerDisconnect = function (socket) {
+        this.getOpponent(socket).getSocket().emit('battle-over', true);
     };
     return Battle;
 })();
 var Team = (function () {
-    function Team(socket, baseTeam, tiebreaker) {
+    function Team(socket, playerName, baseTeam, tiebreaker) {
         this._socket = socket;
+        this.playerName = playerName;
         var units = new Array();
         baseTeam.forEach(function (unit) {
             units.push(new Unit(unit));
@@ -195,7 +230,7 @@ var Team = (function () {
     Team.prototype.replaceUnit = function (unit_slot) {
         this.switchUnits(this._active_unit, this._living_units[unit_slot]);
         this.removeDeadUnits();
-        this._battle.switchSubmitted();
+        this._battle.switchSubmitted(this._active_unit.name, this.playerName);
     };
     Team.prototype.switchUnits = function (unit1, unit2) {
         var idx1 = this._living_units.indexOf(unit1);
