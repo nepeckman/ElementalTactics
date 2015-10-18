@@ -6,10 +6,12 @@ export class Player {
     private _username: string;
     private _socket: SocketIO.Socket;
     private _baseTeam: battle_mod.BaseUnit[];
+    private _isBattling: boolean;
     
     constructor(username: string, socket: SocketIO.Socket){
         this._username = username;
         this._socket = socket;
+        this._isBattling = false;
     }
     
     getUsername(): string{
@@ -34,6 +36,14 @@ export class Player {
     
     setBaseTeam(baseTeam: battle_mod.BaseUnit[]): void {
         this._baseTeam = baseTeam;
+    }
+    
+    setBattleStatus(status: boolean): void{
+        this._isBattling = status;
+    }
+    
+    isBattling(): boolean{
+        return this._isBattling;
     }
 }
 
@@ -121,7 +131,12 @@ export class PlayerController{
             });
             socket.on('challenge', function(challengedUser: string){
                 console.log(playerModel.findBySocket(socket).getUsername() + " challenges " + challengedUser);
-                playerModel.findByUsername(challengedUser).getSocket().emit('battle-request', playerModel.findBySocket(socket).getUsername());
+                var targetPlayer = playerModel.findByUsername(challengedUser);
+                if(!targetPlayer.isBattling()){
+                    targetPlayer.getSocket().emit('battle-request', playerModel.findBySocket(socket).getUsername());
+                } else {
+                    socket.emit('player-busy');
+                }
             });
             socket.on('reject-battle', function(challengingUser: string){
                 console.log(challengingUser + " had their battle rejected.");
@@ -131,14 +146,17 @@ export class PlayerController{
                 console.log("Battle started between " + player1 + " and " + player2);
                 battleController.newBattle(playerModel.findByUsername(player1), playerModel.findByUsername(player2));
             });
-            socket.on('battle-input', function(id: number, mover: number, move: string, target: battle_mod.BaseTarget){
+            socket.on('battle-input', function(id: string, mover: number, move: string, target: battle_mod.BaseTarget){
                 console.log(id);
                 console.log(move);
                 console.log(target);
                 battleController.recieveInput(id, socket, mover, move, target);
             });
-            socket.on('battle-switch', function(id: number, unit_slot: number){
+            socket.on('battle-switch', function(id: string, unit_slot: number){
                 battleController.recieveSwitch(id, socket, unit_slot);
+            });
+            socket.on('battle-over', function(){
+                playerModel.findBySocket(socket).setBattleStatus(false);
             });
             socket.on('disconnect', function(){
                 if(playerModel.findBySocket(socket) != null){

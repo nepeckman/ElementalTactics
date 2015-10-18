@@ -4,6 +4,7 @@ var Player = (function () {
     function Player(username, socket) {
         this._username = username;
         this._socket = socket;
+        this._isBattling = false;
     }
     Player.prototype.getUsername = function () {
         return this._username;
@@ -22,6 +23,12 @@ var Player = (function () {
     };
     Player.prototype.setBaseTeam = function (baseTeam) {
         this._baseTeam = baseTeam;
+    };
+    Player.prototype.setBattleStatus = function (status) {
+        this._isBattling = status;
+    };
+    Player.prototype.isBattling = function () {
+        return this._isBattling;
     };
     return Player;
 })();
@@ -97,7 +104,13 @@ var PlayerController = (function () {
             });
             socket.on('challenge', function (challengedUser) {
                 console.log(playerModel.findBySocket(socket).getUsername() + " challenges " + challengedUser);
-                playerModel.findByUsername(challengedUser).getSocket().emit('battle-request', playerModel.findBySocket(socket).getUsername());
+                var targetPlayer = playerModel.findByUsername(challengedUser);
+                if (!targetPlayer.isBattling()) {
+                    targetPlayer.getSocket().emit('battle-request', playerModel.findBySocket(socket).getUsername());
+                }
+                else {
+                    socket.emit('player-busy');
+                }
             });
             socket.on('reject-battle', function (challengingUser) {
                 console.log(challengingUser + " had their battle rejected.");
@@ -115,6 +128,9 @@ var PlayerController = (function () {
             });
             socket.on('battle-switch', function (id, unit_slot) {
                 battleController.recieveSwitch(id, socket, unit_slot);
+            });
+            socket.on('battle-over', function () {
+                playerModel.findBySocket(socket).setBattleStatus(false);
             });
             socket.on('disconnect', function () {
                 if (playerModel.findBySocket(socket) != null) {

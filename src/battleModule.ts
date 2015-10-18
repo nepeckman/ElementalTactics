@@ -1,4 +1,7 @@
 ///<reference path='../typings/socket.io.d.ts' />
+///<reference path='../typings/node-uuid.d.ts' />
+
+var uuid: UUID = require('node-uuid');
 import player_mod = require('./playerModule');
 
 export class BattleController{
@@ -10,6 +13,8 @@ export class BattleController{
     }
     
     newBattle(player1: player_mod.Player, player2: player_mod.Player){
+        player1.setBattleStatus(true);
+        player2.setBattleStatus(true);
         var tiebreaker = Math.random() < .5;
         var team1: Team = new Team(player1.getSocket(), player1.getUsername(), player1.getBaseTeam(), tiebreaker);
         var team2: Team = new Team(player2.getSocket(), player2.getUsername(), player2.getBaseTeam(), !tiebreaker);
@@ -24,13 +29,13 @@ export class BattleController{
         });
     }
     
-    recieveInput(battleId: number, socket: SocketIO.Socket, mover: number, move: string, baseTarget: BaseTarget){
+    recieveInput(battleId: string, socket: SocketIO.Socket, mover: number, move: string, baseTarget: BaseTarget){
         var battle: Battle = this._battleModel.findBattle(battleId);
         var target: Target = new Target(baseTarget.unit_slot, (baseTarget.team === "you") ? battle.getTeam(socket) : battle.getOpponent(socket));
         battle.getTeam(socket).recieveMove(move, target);
     }
     
-    recieveSwitch(battleID: number, socket: SocketIO.Socket, unit_slot: number){
+    recieveSwitch(battleID: string, socket: SocketIO.Socket, unit_slot: number){
         var battle: Battle = this._battleModel.findBattle(battleID);
         battle.getTeam(socket).replaceUnit(unit_slot);
     }
@@ -64,7 +69,7 @@ class BattleModel{
         }
     }
     
-    findBattle(id: number): Battle{
+    findBattle(id: string): Battle{
         var match: Battle;
         this._battles.forEach(function(battle: Battle){
             if(battle.id === id){
@@ -90,14 +95,14 @@ class Battle{
     private _battleModel: BattleModel;
     team1: Team;
     team2: Team;
-    id: number;
+    id: string;
     battleLog: string[];
     
     constructor(battleModel: BattleModel, team1: Team, team2: Team){
         this._battleModel = battleModel;
         this.team1 = team1;
         this.team2 = team2;
-        this.id = 0;
+        this.id = uuid.v4();
     }
     
     getTeam(socket: SocketIO.Socket){
@@ -253,6 +258,9 @@ class Team{
         this._living_units.forEach(function(unit){
             unit.move = null;
         });
+        if (this._living_units.length === 1 && this._active_unit.health <= 0){
+            this._living_units = []
+        }
     }
     
     removeDeadUnits(){

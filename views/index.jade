@@ -4,99 +4,22 @@ html
         link(rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css")
         script(src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js")
         script(src="https://cdn.socket.io/socket.io-1.2.0.js")
-        style
-            include ../public/css/style.css
+        script(src="https://cdn.rawgit.com/Luegg/angularjs-scroll-glue/master/src/scrollglue.js")
+        link(rel="stylesheet" herf="css/style.css")
     body
         .container(ng-app="playerViewApp")
-            #playerView(ng-controller="playerViewCtrl")
-                    #lobby.container.well(ng-hide="!lobbyActive")
-                        .row
-                            #userlist.col-md-2
-                                span Users:
-                                ul.list-group
-                                    li.list-group-item(ng-repeat="user in userlist" ng-click="promptChallenge(user.name)") {{user.name}}
-                            #lobbyMessages.col-md-6
-                                #lobbyMessageBox.well
-                                    span Lobby Chat:
-                                    ul.list-group
-                                        li.list-group-item(ng-repeat="msg in lobbyMsgs track by $index") {{msg}}
-                            #team-battle.col-md-4
-                                form#teambuilder(ng-submit="changeTeam()")
-                                    .unit(ng-repeat="unit in units")
-                                        span {{unit.name}}
-                                        select(ng-model="unit.primaryType")
-                                            option(ng-repeat="type in types" ng-selected="defaultType(type, unit)") {{type}}
-                                        select(ng-model="unit.secondaryType")
-                                            option(selected) Neutral
-                                            option(ng-repeat="type in types") {{type}}
-                                    button(type="submit") Update Team
-                        .row
-                            .col-md-2
-                                span(ng-hide="username.loggedIn") Please Choose a Username
-                                span(ng-hide="!username.loggedIn") Welcome {{username.name}}
-                                form#nameChange(ng-submit="changeName()")
-                                    input(type="text" ng-model="newName")
-                                    button(type="submit") Change Name
-                            .col-md-6
-                                form#lobbyMessager(ng-submit="lobbyMessage()")
-                                    input(ng-model="lobbyMsg")
-                                    button(type="submit") Send
-                            .col-md-4
-                                form#challenge(ng-submit="submitChallenge()" ng-hide="!isChallenging")
-                                    span  Challenge {{challengedUser}}?
-                                    button(type="submit") Challenge
-                                    button(type="reset" ng-click="cancelChallenge()") Cancel
-                                form#accept(ng-submit="acceptChallenge()" ng-hide="!isChallenged")
-                                    span {{challengingUser}} wants to battle!
-                                    button(type="submit") Accept
-                                    button(type="reset" ng-click="rejectChallenge()") Reject
-            #battleView(ng-controller="battleViewCtrl")
-                #battle.container.well
-                    span You will {{tiebreaker}}
-                    .row
-                        #teams.col-md-4
-                            span Opponent's Team
-                            ul.list-group
-                                li.list-group-item(ng-repeat="unit in oppTeam") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
-                            span Your Team
-                            ul.list-group
-                                li.list-group-item(ng-repeat="unit in yourTeam") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
-                            br
-                        #active.col-md-3
-                            span Opponent's Active Unit:
-                            br
-                            span {{oppActive.name}} ({{oppActive.health}}/10 health): {{oppActive.primaryType}}/{{oppActive.secondaryType}}
-                            br
-                            br
-                            span Your Active Unit:
-                            br
-                            span {{yourActive.name}} ({{yourActive.health}}/10 health): {{yourActive.primaryType}}/{{yourActive.secondaryType}}
-                            br
-                        #battleInput.col-md-2
-                            form(ng-submit="processMove()" ng-hide="!recievingAction")
-                                label Attack
-                                    input(type="radio" ng-model="playerMove" value="attack")
-                                br
-                                label Switch
-                                    input(type="radio" ng-model="playerMove" value="switch")
-                                br
-                                button.btn(type="submit") Submit Move
-                            form(ng-submit="submitSwitch()" ng-hide="!promptSwitch")
-                                label(ng-repeat="unit in yourTeam" for="{{unit.name}}") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
-                                    input(type="radio" ng-model="switchTarget.unit_slot" ng-value="$index" id="{{unit.name}}" name="switchTarget")
-                                br
-                                button.btn(type="submit") Switch units  
-                            form(ng-submit="submitReplacement()" ng-hide="!recievingReplacement")
-                                label(ng-repeat="unit in livingUnits" for="{{unit.name}}") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
-                                    input(type="radio" ng-model="switchTarget.unit_slot" ng-value="$index + 1" id="{{unit.name}}" name="switchTarget")
-                                br
-                                button.btn(type="submit") Switch units
-                        #battleLog.col-md-3
-                            span Battle Log:
-                            #battleLogBox.well
-                                span(ng-repeat="entry in battleLog track by $index") {{entry}}
-                                    br
-            script
-                include ../public/javascript/angularApp.js
-                include ../public/javascript/playerView.js
-                include ../public/javascript/battleView.js
+            #roomSwitch(ng-controller="roomViewCtrl")
+                button.btn.btn-xs(ng-click="startInfoRoom()") Info
+                button.btn.btn-xs(ng-click="startLobbyRoom()") Lobby
+                button.btn.btn-xs(ng-click="startTeamRoom()") Team Builder
+                button.btn.btn-xs(ng-click="startBattleRoom()") Battle
+            #infoView
+                #info.container.well(ng-hide="!(userInfo.room === 'info')")
+            include lobby.jade
+            include teambuilder.jade
+            include battle.jade
+            script(src="javascript/angularApp.js")
+            script(src="javascript/playerView.js")
+            script(src="javascript/battleView.js")
+            script(src="javascript/roomView.js")
+            script(src="javascript/teambuildView.js")

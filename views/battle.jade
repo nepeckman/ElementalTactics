@@ -1,0 +1,47 @@
+#battleView(ng-controller="battleViewCtrl")
+    span#noBattleMsg(ng-hide="battling || !(userInfo.room === 'battle')") No active battles
+    #battle.container.well(ng-hide="!(userInfo.room === 'battle') || (!battling)")
+        span You will {{tiebreaker}}
+        .row
+            #teams.col-md-4
+                span Opponent's Team
+                ul.list-group
+                    li.list-group-item(ng-repeat="unit in oppTeam") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
+                span Your Team
+                ul.list-group
+                    li.list-group-item(ng-repeat="unit in yourTeam") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
+                br
+            #active.col-md-3
+                span Opponent's Active Unit:
+                br
+                span {{oppActive.name}} ({{oppActive.health}}/10 health): {{oppActive.primaryType}}/{{oppActive.secondaryType}}
+                br
+                br
+                span Your Active Unit:
+                br
+                span {{yourActive.name}} ({{yourActive.health}}/10 health): {{yourActive.primaryType}}/{{yourActive.secondaryType}}
+                br
+            #battleInput.col-md-2
+                form(ng-submit="processMove()" ng-hide="!recievingAction")
+                    label Attack
+                        input(type="radio" ng-model="playerMove" value="attack")
+                    br
+                    label Switch
+                        input(type="radio" ng-model="playerMove" value="switch")
+                    br
+                    button.btn(type="submit") Submit Move
+                form(ng-submit="submitSwitch()" ng-hide="!promptSwitch")
+                    label(ng-repeat="unit in yourTeam" for="{{unit.name}}") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
+                        input(type="radio" ng-model="switchTarget.unit_slot" ng-value="$index" id="{{unit.name}}" name="switchTarget")
+                    br
+                    button.btn(type="submit") Switch units  
+                form(ng-submit="submitReplacement()" ng-hide="!recievingReplacement")
+                    label(ng-repeat="unit in livingUnits" for="{{unit.name}}") {{unit.name}} ({{unit.health}}/10 health): {{unit.primaryType}}/{{unit.secondaryType}}
+                        input(type="radio" ng-model="switchTarget.unit_slot" ng-value="$index + 1" id="{{unit.name}}" name="switchTarget")
+                    br
+                    button.btn(type="submit") Switch units
+            #battleLog.col-md-3(style="height:250px; overflow:scroll" scroll-glue)
+                span Battle Log:
+                #battleLogBox.well
+                    span(ng-repeat="entry in battleLog track by $index") {{entry}}
+                        br

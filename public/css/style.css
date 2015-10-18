@@ -6,12 +6,18 @@ ul {
     overflow: scroll;
     max-height: 300px;
 }
+
+#info {
+    
+}
+
 #lobby {
     min-height: 100%;
 }
 
-#lobbyMessageBox {
-    height: 250px;
+#lobbyMessages {
+    overflow: scroll;
+    max-height: 250px;
 }
 
 #battleLogBox {

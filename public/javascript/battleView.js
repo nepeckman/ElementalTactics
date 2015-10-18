@@ -2,6 +2,7 @@ app.controller('battleViewCtrl', function($scope) {
     var battleID;
     var yourName;
     var oppName;
+    $scope.battling = false;
     var mover = 0; // Active unit is always acting
     $scope.switchTarget = {unit_slot: null, team: "you"};
     $scope.battleLog = new Array();
@@ -44,6 +45,8 @@ app.controller('battleViewCtrl', function($scope) {
         battleID = id;
         yourName = _yourName;
         oppName = _oppName;
+        $scope.battling = true;
+        $scope.userInfo.room = "battle";
         $scope.battleLog = new Array();
         $scope.battleLog.push(": Battle started between " + yourName + " and " + oppName + "!");
         updateView(yourTeam, oppTeam, tiebreaker);
@@ -81,5 +84,7 @@ app.controller('battleViewCtrl', function($scope) {
         $scope.oppTeam = null;
         $scope.oppActive = null;
         $scope.tiebreaker = null;
+        socket.emit('battle-over');
+        $scope.$apply();
     });
 });

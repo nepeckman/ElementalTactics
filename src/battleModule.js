@@ -1,8 +1,13 @@
+///<reference path='../typings/socket.io.d.ts' />
+///<reference path='../typings/node-uuid.d.ts' />
+var uuid = require('node-uuid');
 var BattleController = (function () {
     function BattleController() {
         this._battleModel = new BattleModel();
     }
     BattleController.prototype.newBattle = function (player1, player2) {
+        player1.setBattleStatus(true);
+        player2.setBattleStatus(true);
         var tiebreaker = Math.random() < .5;
         var team1 = new Team(player1.getSocket(), player1.getUsername(), player1.getBaseTeam(), tiebreaker);
         var team2 = new Team(player2.getSocket(), player2.getUsername(), player2.getBaseTeam(), !tiebreaker);
@@ -74,7 +79,7 @@ var Battle = (function () {
         this._battleModel = battleModel;
         this.team1 = team1;
         this.team2 = team2;
-        this.id = 0;
+        this.id = uuid.v4();
     }
     Battle.prototype.getTeam = function (socket) {
         return (this.team1.getSocket().id === socket.id) ? this.team1 : this.team2;
@@ -213,6 +218,9 @@ var Team = (function () {
         this._living_units.forEach(function (unit) {
             unit.move = null;
         });
+        if (this._living_units.length === 1 && this._active_unit.health <= 0) {
+            this._living_units = [];
+        }
     };
     Team.prototype.removeDeadUnits = function () {
         this._living_units.forEach(function (unit, index, array) {

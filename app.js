@@ -1,4 +1,5 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var playerModule = require('./src/playerModule');
@@ -10,6 +11,7 @@ app.get('/', function (req, res) {
     res.render('index');
 });
 
+app.use(express.static('public'));
 var playerController = new playerModule.PlayerController(io);
 
 var server_port = process.env.OPENSHIFT_NODEJS_PORT || 8080;

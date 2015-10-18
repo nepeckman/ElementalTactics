@@ -1,0 +1,10 @@
+#teambuildView(ng-controller="teambuildViewCtrl")
+    form#teambuilder.container.well(ng-submit="changeTeam()" ng-hide="!(userInfo.room === 'teambuilder')")
+        .unit(ng-repeat="unit in units")
+            span {{unit.name}}
+            select(ng-model="unit.primaryType")
+                option(ng-repeat="type in types" ng-selected="defaultType(type, unit)") {{type}}
+            select(ng-model="unit.secondaryType")
+                option(selected) Neutral
+                option(ng-repeat="type in types") {{type}}
+        button(type="submit") Update Team
