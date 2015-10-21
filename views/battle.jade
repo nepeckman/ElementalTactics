@@ -40,8 +40,28 @@
                         input(type="radio" ng-model="switchTarget.unit_slot" ng-value="$index + 1" id="{{unit.name}}" name="switchTarget")
                     br
                     button.btn(type="submit") Switch units
-            #battleLog.col-md-3(style="height:250px; overflow:scroll" scroll-glue)
+            #battleLog.col-md-3
                 span Battle Log:
-                #battleLogBox.well
+                #battleLogBox.well(style="height:250px; overflow:scroll" scroll-glue)
                     span(ng-repeat="entry in battleLog track by $index") {{entry}}
                         br
+        span(ng-hide="offensiveMatchup") Your Defensive Matchup
+        button.btn.btn-xs(ng-click="toggleMatchup()" ng-hide="offensiveMatchup") View Offensive Matchup
+        span(ng-hide="!offensiveMatchup") Your Offensive Matchup
+        button.btn.btn-xs(ng-click="toggleMatchup()" ng-hide="!offensiveMatchup") View Defensive Matchup
+        table.table(ng-hide="offensiveMatchup")
+            thead
+                tr
+                    th
+                    th(ng-repeat="yourUnit in yourTeam") {{playerNames.yourName}}'s {{yourUnit.name}}
+                tr(ng-repeat="oppUnit in oppTeam")
+                    td {{playerNames.oppName}}'s {{oppUnit.name}}
+                    td(ng-repeat="yourUnit in yourTeam") {{unitMatchup(oppUnit, yourUnit)}}
+        table.table(ng-hide="!offensiveMatchup")
+            thead
+                tr
+                    th
+                    th(ng-repeat="oppUnit in oppTeam") {{playerNames.oppName}}'s {{oppUnit.name}}
+                tr(ng-repeat="yourUnit in yourTeam")
+                    td {{playerNames.yourName}}'s {{yourUnit.name}}
+                    td(ng-repeat="oppUnit in oppTeam") {{unitMatchup(yourUnit, oppUnit)}}

@@ -1,0 +1,15 @@
+#infoView
+    #info.container.well(ng-hide="!(userInfo.room === 'info')")
+        h3 Elemental Tactics
+        br
+        p Elemental Tactics is a simple turned based strategy game. The basics of the game:
+        ul
+            li Players build teams of 5 units
+            li Players give each unit a primary and secondary type (secondary type can be neutral)
+            li Units have 10 health, no other stats
+            li In battles, players have an active unit that faces the opponent's active unit
+            li Units can either attack with a move of their primary type, or switch
+            li Attacks do damage based on a typing chart (base damage is 4, x2 for each effective type match, x1/2 for ineffective)
+            li Switches go before attackes
+            li Tiebreaking to determine who attacks first is set at the beginning of the turn and alternates every turn
+        img(src="assets/images/typechart.png")

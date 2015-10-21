@@ -3,6 +3,7 @@
 
 var uuid: UUID = require('node-uuid');
 import player_mod = require('./playerModule');
+import type_mod = require('./typeModule');
 
 export class BattleController{
     
@@ -138,7 +139,7 @@ switchSubmitted(unitName: string, playerName: string){
             console.log(unit.move);
             if(unit.move.name === "attack" && unit.health > 0){
                 var defendingUnit = unit.move.target.team.getActiveUnit();
-                var damage: number = unit.move.damage*typeDamage(unit.primaryType, defendingUnit.primaryType, defendingUnit.secondaryType);
+                var damage: number = unit.move.damage*type_mod.typeDamage(unit.primaryType, defendingUnit.primaryType, defendingUnit.secondaryType);
                 defendingUnit.health -= damage;
                 battleLog.push(unit.name + " attacked " + defendingUnit.name + " for " + damage.toString() + " damage!");
             } else if(unit.move.name === "switch" && unit.health > 0){
@@ -305,8 +306,8 @@ class Team{
 
 class Unit{
     
-    primaryType: Type;
-    secondaryType: Type;
+    primaryType: type_mod.Type;
+    secondaryType: type_mod.Type;
     name: string;
     health: number;
     move: Move;
@@ -322,13 +323,13 @@ class Unit{
 
 export interface BaseUnit{
 
-    primaryType: Type;
-    secondaryType: Type;
+    primaryType: type_mod.Type;
+    secondaryType: type_mod.Type;
     name: string;
     
 }
 
-enum Type {"Fire", "Water", "Air", "Earth", "Flora", "Electric", "Ice", "Metal", "Light", "Dark", "Neutral"};
+
 
 export interface BaseTarget{
     
@@ -350,13 +351,13 @@ class Target{
 class Move {
     
     name: string;
-    type: Type;
+    type: type_mod.Type;
     target: Target;
     priority: number;
     damage: number;
     tiebreaker: boolean;
     
-    constructor(name: string, type: Type, target: Target, priority: number, damage: number, tiebreaker: boolean){
+    constructor(name: string, type: type_mod.Type, target: Target, priority: number, damage: number, tiebreaker: boolean){
         this.name = name;
         this.type = type;
         this.target = target;
@@ -364,218 +365,4 @@ class Move {
         this.damage = damage;
         this.tiebreaker = tiebreaker;
     }
-}
-
-
-
-/********** TYPES AND TYPE RELATED THINGS **********/
-
-var typeMap = {};
-var fireMap = {};
-for(var idx = 0; idx < 11; idx++){
-    switch(Type[idx]){
-        case "Fire":
-            fireMap[Type[idx]] = 2;
-            break;
-        case "Water":
-            fireMap[Type[idx]] = 2;
-            break;
-        case "Air":
-            fireMap[Type[idx]] = 2;
-            break;
-        case "Earth":
-            fireMap[Type[idx]] = 2;
-            break;
-        case "Flora":
-            fireMap[Type[idx]] = 1/2;
-            break;
-        case "Ice":
-            fireMap[Type[idx]] = 1/2;
-            break;
-        default:
-            fireMap[Type[idx]] = 1;
-    }
-}
-var waterMap = {};
-for(var idx = 0; idx < 11; idx++){
-    switch(Type[idx]){
-        case "Fire":
-            waterMap[Type[idx]] = 1/2;
-            break;
-        case "Water":
-            waterMap[Type[idx]] = 1/2;
-            break;
-        case "Flora":
-            waterMap[Type[idx]] = 2;
-            break;
-        case "Electric":
-            waterMap[Type[idx]] = 2;
-            break;
-        case "Ice":
-            waterMap[Type[idx]] = 1/2;
-            break;
-        case "Metal":
-            waterMap[Type[idx]] = 1/2;
-            break;
-        default:
-            waterMap[Type[idx]] = 1;
-    }
-}
-var airMap = {};
-for(var idx = 0; idx < 11; idx++){
-    switch(Type[idx]){
-        case "Earth":
-            airMap[Type[idx]] = 1/2;
-            break;
-        case "Ice":
-            airMap[Type[idx]] = 2;
-            break;
-        default:
-            airMap[Type[idx]] = 1;
-    }
-}
-var earthMap = {};
-for(var idx = 0; idx < 11; idx++){
-    switch(Type[idx]){
-        case "Water":
-            earthMap[Type[idx]] = 2;
-            break;
-        case "Air":
-            earthMap[Type[idx]] = 1/2;
-            break;
-        case "Earth":
-            earthMap[Type[idx]] = 1/2;
-            break;
-        case "Flora":
-            earthMap[Type[idx]] = 2;
-            break;
-        case "Electric":
-            earthMap[Type[idx]] = 1/2;
-            break;
-        default:
-            earthMap[Type[idx]] = 1;
-    }
-}
-var floraMap = {};
-for(var idx = 0; idx < 11; idx++){
-    switch(Type[idx]){
-        case "Fire":
-            floraMap[Type[idx]] = 2;
-            break;
-        case "Water":
-            floraMap[Type[idx]] = 1/2;
-            break;
-        case "Air":
-            floraMap[Type[idx]] = 2;
-            break;
-        case "Flora":
-            floraMap[Type[idx]] = 1/2;
-            break;
-        case "Electric":
-            floraMap[Type[idx]] = 1/2;
-            break;
-        case "Ice":
-            floraMap[Type[idx]] = 2;
-            break;
-        default:
-            floraMap[Type[idx]] = 1;
-    }
-}
-var electricMap = {};
-for(var idx = 0; idx < 11; idx++){
-    switch(Type[idx]){
-        case "Earth":
-            electricMap[Type[idx]] = 2;
-            break;
-        case "Electric":
-            electricMap[Type[idx]] = 2;
-            break;
-        case "Metal":
-            electricMap[Type[idx]] = 1/2;
-            break;
-        default:
-            electricMap[Type[idx]] = 1;
-    }
-}
-var iceMap = {};
-for(var idx = 0; idx < 11; idx++){
-    switch(Type[idx]){
-        case "Fire":
-            iceMap[Type[idx]] = 2;
-            break;
-        case "Water":
-            iceMap[Type[idx]] = 1/2;
-            break;
-        case "Metal":
-            iceMap[Type[idx]] = 2;
-            break;
-        case "Dark":
-            iceMap[Type[idx]] = 1/2;
-            break;
-        default:
-            iceMap[Type[idx]] = 1;
-    }
-}
-var metalMap = {};
-for(var idx = 0; idx < 11; idx++){
-    switch(Type[idx]){
-        case "Air":
-            metalMap[Type[idx]] = 1/2;
-            break;
-        case "Earth":
-            metalMap[Type[idx]] = 2;
-            break;
-        case "Light":
-            metalMap[Type[idx]] = 1/2;
-            break;
-        default:
-            metalMap[Type[idx]] = 1;
-    }
-}
-var lightMap = {};
-for(var idx = 0; idx < 11; idx++){
-    switch(Type[idx]){
-        case "Metal":
-            lightMap[Type[idx]] = 2;
-            break;
-        case "Light":
-            lightMap[Type[idx]] = 1/2;
-            break;
-        default:
-            lightMap[Type[idx]] = 1;
-    }
-}
-var darkMap = {};
-for(var idx = 0; idx < 11; idx++){
-    switch(Type[idx]){
-        case "Electric":
-            darkMap[Type[idx]] = 2;
-            break;
-        case "Dark":
-            darkMap[Type[idx]] = 2;
-            break;
-        default:
-            darkMap[Type[idx]] = 1;
-    }
-}
-var neutralMap = {};
-for(var idx = 0; idx < 11; idx++){
-    neutralMap[Type[idx]] = 1;
-}
-
-typeMap[Type.Fire] = fireMap;
-typeMap[Type.Water] = waterMap;
-typeMap[Type.Air] = airMap;
-typeMap[Type.Earth] = earthMap;
-typeMap[Type.Flora] = floraMap;
-typeMap[Type.Electric] = electricMap;
-typeMap[Type.Ice] = iceMap;
-typeMap[Type.Metal] = metalMap;
-typeMap[Type.Light] = lightMap;
-typeMap[Type.Dark] = darkMap;
-typeMap[Type.Neutral] = neutralMap;
-
-function typeDamage(attackingType: Type, primaryType: Type, secondaryType: Type): number{
-    console.log(typeMap[Type[primaryType]]);
-    return typeMap[Type[primaryType]][attackingType] * typeMap[Type[secondaryType]][attackingType];
 }

@@ -13,11 +13,11 @@ html
                 button.btn.btn-xs(ng-click="startLobbyRoom()") Lobby
                 button.btn.btn-xs(ng-click="startTeamRoom()") Team Builder
                 button.btn.btn-xs(ng-click="startBattleRoom()") Battle
-            #infoView
-                #info.container.well(ng-hide="!(userInfo.room === 'info')")
+            include info.jade
             include lobby.jade
             include teambuilder.jade
             include battle.jade
+            script(src="javascript/typeInfo.js")
             script(src="javascript/angularApp.js")
             script(src="javascript/playerView.js")
             script(src="javascript/battleView.js")

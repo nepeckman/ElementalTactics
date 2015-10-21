@@ -1,11 +1,12 @@
 app.controller('battleViewCtrl', function($scope) {
-    var battleID;
-    var yourName;
-    var oppName;
+    $scope.playerNames = {yourName: "", oppName: ""};
+    $scope.battleID;
     $scope.battling = false;
+    $scope.offensiveMatchup = false;
     var mover = 0; // Active unit is always acting
     $scope.switchTarget = {unit_slot: null, team: "you"};
     $scope.battleLog = new Array();
+    
     
     var submitMove = function(move, target){
         socket.emit('battle-input', battleID, mover, move, target);
@@ -41,14 +42,22 @@ app.controller('battleViewCtrl', function($scope) {
         $scope.recievingReplacement = false;
     }
     
-    socket.on('new-battle', function(id, yourTeam, oppTeam, tiebreaker, _yourName, _oppName){
-        battleID = id;
-        yourName = _yourName;
-        oppName = _oppName;
+    $scope.unitMatchup = function(offensiveUnit, deffensiveUnit){
+        return typeDamageFromString(offensiveUnit.primaryType, deffensiveUnit.primaryType, deffensiveUnit.secondaryType);
+    }
+    
+    $scope.toggleMatchup = function(){
+        $scope.offensiveMatchup = !$scope.offensiveMatchup;
+    }
+    
+    socket.on('new-battle', function(id, yourTeam, oppTeam, tiebreaker, yourName, oppName){
+        $scope.battleID = id;
+        $scope.playerNames.yourName = yourName;
+        $scope.playerNames.oppName = oppName;
         $scope.battling = true;
         $scope.userInfo.room = "battle";
         $scope.battleLog = new Array();
-        $scope.battleLog.push(": Battle started between " + yourName + " and " + oppName + "!");
+        $scope.battleLog.push(": Battle started between " + $scope.playerNames.yourName + " and " + $scope.playerNames.oppName + "!");
         updateView(yourTeam, oppTeam, tiebreaker);
     });
     

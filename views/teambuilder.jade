@@ -1,5 +1,5 @@
-#teambuildView(ng-controller="teambuildViewCtrl")
-    form#teambuilder.container.well(ng-submit="changeTeam()" ng-hide="!(userInfo.room === 'teambuilder')")
+#teambuildView(ng-controller="teambuildViewCtrl" ng-hide="!(userInfo.room === 'teambuilder')").container.well
+    form#teambuilder(ng-submit="changeTeam()")
         .unit(ng-repeat="unit in units")
             span {{unit.name}}
             select(ng-model="unit.primaryType")
@@ -8,3 +8,38 @@
                 option(selected) Neutral
                 option(ng-repeat="type in types") {{type}}
         button(type="submit") Update Team
+    br
+    span Type Effectiveness:
+    button(ng-click="toggleMatchups()" ng-hide="!offensiveMatches") View Defensive Matchups
+    button(ng-click="toggleMatchups()" ng-hide="offensiveMatches") View Offensive Matchups
+    br
+    br
+    table.table(ng-hide="offensiveMatches")
+        thead
+            tr
+                th
+                th(ng-repeat="unit in units") {{unit.name}}
+                th Total Team Resists
+                th Total Team Weaknesses
+        tbody
+            tr(ng-repeat="type in types")
+                td {{type}}
+                td(ng-repeat="unit in units") {{typeDamage(type, unit.primaryType, unit.secondaryType)}}
+                td(ng-bind="teamResists(type)")
+                td(ng-bind="teamWeaknesses(type)")
+    table.table(ng-hide="!offensiveMatches")
+        thead
+            tr
+                th
+                th(ng-repeat="type in types") {{type}}
+        tbody
+            tr(ng-repeat="unit in units")
+                td {{unit.name}}
+                td(ng-repeat="type in types") {{typeDamage(unit.primaryType, type, 'Neutral')}}
+            tr
+                td Total Effective
+                td(ng-repeat="type in types") {{teamEffective(type)}}
+            tr
+                td Total Ineffective
+                td(ng-repeat="type in types") {{teamIneffective(type)}}
+                
